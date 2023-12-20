@@ -1,0 +1,20 @@
+{
+  "authors": [
+    {
+      "maintainer": true,
+      "name": "Kamil Leczkowski",
+      "url": "https://github.com/Leczok12"
+    }
+  ],
+  "description": "Quick and simple lib to handle buttons",
+  "frameworks": "arduino",
+  "keywords": "serial, pretty, esp32, arduino",
+  "license": "",
+  "name": "QuickButton",
+  "platforms": "atmelavr, espressif8266, espressif32, raspberrypi",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "version": "0.0.1"
+}
