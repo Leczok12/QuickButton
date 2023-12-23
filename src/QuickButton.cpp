@@ -1,12 +1,17 @@
 #include "QuickButton.h"
-
+/*!
+    @brief Constructor
+    @param pin the pin to which the button is connected
+    @param callbacks_auto_reset reset button state after invoke callback
+    @note another button pin should be connected to ground
+*/
 QuickButton::QuickButton(int pin, bool callbacks_auto_reset)
     : _pin(pin),
       _callbacksAutoReset(callbacks_auto_reset),
       _durationClickCallback(nullptr),
-      _multipleClickCallback(nullptr),
+      _countClickCallback(nullptr),
       _mixedClickCallback(nullptr),
-      _event(EVENT::NONE),
+      _event(QB_events::NONE),
       _duration(0),
       _deltaTime(0),
       _pressEndTime(0),
@@ -18,19 +23,28 @@ QuickButton::QuickButton(int pin, bool callbacks_auto_reset)
 
 QuickButton::~QuickButton(){};
 
+/*!
+    @brief button main loop;
+    @note call it at least once per one main loop
+*/
 void QuickButton::loop()
 {
-    if (_event != EVENT::NONE && (_durationClickCallback != nullptr || _multipleClickCallback != nullptr || _mixedClickCallback != nullptr))
+    if (_event != QB_events::NONE)
     {
-        if (_durationClickCallback != nullptr)
-            _durationClickCallback(_duration);
-        else if (_multipleClickCallback != nullptr)
-            _multipleClickCallback(_count);
-        else if (_mixedClickCallback != nullptr)
-            _mixedClickCallback(_duration, _count);
+        if (_durationClickCallback != nullptr ||
+            _countClickCallback != nullptr ||
+            _mixedClickCallback != nullptr)
+        {
+            if (_durationClickCallback != nullptr)
+                _durationClickCallback(_duration);
+            else if (_countClickCallback != nullptr)
+                _countClickCallback(_count);
+            else if (_mixedClickCallback != nullptr)
+                _mixedClickCallback(_duration, _count);
 
-        if (_callbacksAutoReset)
-            reset();
+            if (_callbacksAutoReset)
+                reset();
+        }
         return;
     }
 
@@ -57,19 +71,23 @@ void QuickButton::loop()
 
     if (_count == 1 && _pressEndTime + 200 < millis())
     {
-        _event = EVENT::CLICK;
+        _event = QB_events::SINGLE_CLICK;
         loop();
     }
     else if (_count > 1 && _pressEndTime + 200 < millis())
     {
-        _event = EVENT::MULTIPLE_CLICK;
+        _event = QB_events::MULTIPLE_CLICK;
         loop();
     }
 }
 
+/*!
+    @brief Reset button state (event, duration, count).
+    @note call after read event, click count and duration.
+*/
 void QuickButton::reset()
 {
-    _event = EVENT::NONE;
+    _event = QB_events::NONE;
     _duration = 0;
     _deltaTime = 0;
     _pressEndTime = 0;
@@ -77,52 +95,86 @@ void QuickButton::reset()
     _count = 0;
 }
 
+/*!
+    @return True if is pressed.
+*/
 bool QuickButton::isPressed()
 {
     return _pressed;
 }
-
-EVENT QuickButton::getEvent()
+/*!
+    @brief Get button event.
+    @return current event
+*/
+QB_events QuickButton::getEvent()
 {
     return _event;
 }
+/*!
+    @brief Get button click count.
+    @return click count.
+*/
 int QuickButton::getClickCount()
 {
     return _count;
 }
+/*!
+    @brief Get last click duration.
+    @return click duration in mili seconds.
+*/
 unsigned long QuickButton::getClickDuration()
 {
     return _duration;
 }
 
-void QuickButton::setEvent(EVENT event)
+/*!
+    @brief Virtualize click and invoke callback if is's exist
+    @param event EVENT type. NONE, SINGLE_CLICK, MULTIPLE_CLICK.
+    @param duration duration of click. Greater than 100.
+    @param count count of click. Greater than 0.
+    @note If EVENT equals NONE, duartion is lower than 100,
+          count is lower than 1 or button is pressed nothing will happend.
+*/
+void QuickButton::virtualizeClick(QB_events event, unsigned long duration, int count)
 {
+    if (!(event != QB_events::NONE && duration >= 100 && count >= 1) ||
+        _pressed || _count != 0)
+        return;
+
     _event = event;
-}
-void QuickButton::setClickCount(int count)
-{
-    _count = count;
-}
-unsigned long QuickButton::setClickDuration(unsigned int duration)
-{
     _duration = duration;
+    _count = count;
+    loop();
 }
 
+/*!
+    @brief Set callback with only duration param.
+    @param duration unsigned long type. Greater than 0.
+*/
 void QuickButton::onClick(durationClickCallback callback)
 {
     _durationClickCallback = callback;
-    _multipleClickCallback = nullptr;
+    _countClickCallback = nullptr;
     _mixedClickCallback = nullptr;
 }
-void QuickButton::onClick(multipleClickCallback callback)
+/*!
+    @brief Set callback with only click count param.
+    @param count int type. Greater than 0.
+*/
+void QuickButton::onClick(countClickCallback callback)
 {
     _durationClickCallback = nullptr;
-    _multipleClickCallback = callback;
+    _countClickCallback = callback;
     _mixedClickCallback = nullptr;
 }
+/*!
+    @brief Set callback with duartion and click count param.
+    @param duration unsigned long type. Greater than 0.
+    @param count int type. Greater than 0.
+*/
 void QuickButton::onClick(mixedClickCallback callback)
 {
     _durationClickCallback = nullptr;
-    _multipleClickCallback = nullptr;
+    _countClickCallback = nullptr;
     _mixedClickCallback = callback;
 }

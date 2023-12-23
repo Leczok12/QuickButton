@@ -3,15 +3,15 @@
 
 #include <Arduino.h>
 
-enum EVENT
+enum QB_events
 {
     NONE,
-    CLICK,
+    SINGLE_CLICK,
     MULTIPLE_CLICK
 };
 
 typedef void (*durationClickCallback)(unsigned long);
-typedef void (*multipleClickCallback)(int);
+typedef void (*countClickCallback)(int);
 typedef void (*mixedClickCallback)(unsigned long, int);
 
 class QuickButton
@@ -19,21 +19,20 @@ class QuickButton
 public:
     QuickButton(int pin, bool callbacks_auto_reset = true);
     ~QuickButton();
-
     void loop();
     void reset();
     bool isPressed();
 
-    EVENT getEvent();
+    QB_events getEvent();
     int getClickCount();
     unsigned long getClickDuration();
 
-    void setEvent(EVENT event);
-    void setClickCount(int count);
-    unsigned long setClickDuration(unsigned int duration);
+    void virtualizeClick(QB_events event = SINGLE_CLICK,
+                         unsigned long duration = 100,
+                         int count = 1);
 
     void onClick(durationClickCallback callback);
-    void onClick(multipleClickCallback callback);
+    void onClick(countClickCallback callback);
     void onClick(mixedClickCallback callback);
 
 private:
@@ -41,10 +40,10 @@ private:
     const bool _callbacksAutoReset;
 
     durationClickCallback _durationClickCallback;
-    multipleClickCallback _multipleClickCallback;
+    countClickCallback _countClickCallback;
     mixedClickCallback _mixedClickCallback;
 
-    EVENT _event;
+    QB_events _event;
 
     unsigned long _duration;
     unsigned long _deltaTime;
