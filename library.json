@@ -8,13 +8,13 @@
   ],
   "description": "Quick and simple lib to handle buttons",
   "frameworks": "arduino",
-  "keywords": "serial, pretty, esp32, arduino",
-  "license": "",
+  "keywords": "Button, Quick, Simple, Buttons, Arduino, Esp, Esp32, Esp8266",
+  "license": "MIT",
   "name": "QuickButton",
   "platforms": "atmelavr, espressif8266, espressif32, raspberrypi",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/Leczok12/QuickButton"
   },
-  "version": "0.0.1"
+  "version": "1.0.0"
 }
